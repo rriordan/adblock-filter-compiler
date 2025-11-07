@@ -73,7 +73,7 @@ def main():
     file_contents = filter(None, results)  # More concise filtering
     filter_content, stats = generate_filter(file_contents)
 
-    with open('blocklist.txt', 'w') as f:
+    with open('blocklist.txt', 'w', encoding='utf-8') as f:   # Write file as UTF-8
         f.write(filter_content)
 
     logging.info(f"Blocklist generated: {len(filter_content.splitlines())} lines, {stats['duplicates']} duplicates removed, {stats['compressed']} domains compressed")
