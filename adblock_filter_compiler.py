@@ -60,23 +60,28 @@ def fetch_blocklist(url, session=None):
     except requests.RequestException as e:
         logging.error(f"Error fetching {url}: {e}")
 
+def build_blocklist(urls, filename):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        with requests.Session() as session:
+            results = executor.map(lambda url: fetch_blocklist(url, session), urls)
+    file_contents = filter(None, results)
+    filter_content, stats = generate_filter(file_contents)
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(filter_content)
+    logging.info(f"{filename} generated: {len(filter_content.splitlines())} lines, {stats['duplicates']} duplicates removed, {stats['compressed']} domains compressed")
+
 def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     with open('config.json') as f:
         config = json.load(f)
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Reuse session for all requests within the executor
-        with requests.Session() as session:
-            results = executor.map(lambda url: fetch_blocklist(url, session), config['blocklist_urls'])
-    
-    file_contents = filter(None, results)  # More concise filtering
-    filter_content, stats = generate_filter(file_contents)
+    desktop_urls = config.get('blocklist_urls_desktop', [])
+    mobile_urls = config.get('blocklist_urls_mobile', [])
 
-    with open('blocklist.txt', 'w', encoding='utf-8') as f:   # Write file as UTF-8
-        f.write(filter_content)
-
-    logging.info(f"Blocklist generated: {len(filter_content.splitlines())} lines, {stats['duplicates']} duplicates removed, {stats['compressed']} domains compressed")
+    if desktop_urls:
+        build_blocklist(desktop_urls, 'blocklist_desktop.txt')
+    if mobile_urls:
+        build_blocklist(mobile_urls, 'blocklist_mobile.txt')
 
 if __name__ == "__main__":
     main()
