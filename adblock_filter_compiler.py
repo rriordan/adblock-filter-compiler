@@ -54,12 +54,18 @@ def generate_header(rule_count, stats, is_mobile=False):
     """Generate blocklist header."""
     timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S %Z')
     list_type = "Mobile" if is_mobile else "Desktop"
-    return f"""# Title: Ghostnetic's Blocklist - {list_type}
-# Description: Consolidated adblock filters ({list_type} version)
-# Last Modified: {timestamp}
-# Total Rules: {rule_count}
-# Duplicates Removed: {stats['duplicates_removed']}
-"""
+    return (
+        f"# Title: Ghostnetic's Blocklist - {list_type}
+"
+        f"# Description: Consolidated adblock filters ({list_type} version)
+"
+        f"# Last Modified: {timestamp}
+"
+        f"# Total Rules: {rule_count}
+"
+        f"# Duplicates Removed: {stats['duplicates_removed']}
+"
+    )
 
 def build_blocklist(urls, filename, is_mobile=False):
     """Build a blocklist from given URLs."""
@@ -75,7 +81,10 @@ def build_blocklist(urls, filename, is_mobile=False):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(filter_content)
     
-    logging.info(f"{filename} generated: {stats['total_rules']} rules, {stats['duplicates_removed']} duplicates removed")
+    logging.info(
+        f"{filename} generated: {stats['total_rules']} rules, "
+        f"{stats['duplicates_removed']} duplicates removed"
+    )
 
 def main():
     with open('config.json') as f:
