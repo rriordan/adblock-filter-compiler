@@ -8,7 +8,6 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def fetch_blocklist(url, session=None):
-    """Fetch blocklist using optional session for potential reuse."""
     session = session or requests.Session()
     try:
         response = session.get(url, timeout=5)
@@ -19,19 +18,15 @@ def fetch_blocklist(url, session=None):
         return None
 
 def parse_filter_list(content):
-    """Parse filter list while preserving all valid syntax."""
     rules = []
     for line in content.splitlines():
         line = line.strip()
-        # Skip comments and empty lines
         if not line or line.startswith(('!', '#')):
             continue
-        # Keep all valid adblock rules as-is
         rules.append(line)
     return rules
 
 def generate_filter(file_contents, is_mobile=False):
-    """Generate consolidated filter list."""
     rules = set()
     stats = {"total_rules": 0, "duplicates_removed": 0}
     
@@ -51,25 +46,23 @@ def generate_filter(file_contents, is_mobile=False):
 '.join([header] + sorted_rules), stats
 
 def generate_header(rule_count, stats, is_mobile=False):
-    """Generate blocklist header."""
     timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S %Z')
     list_type = "Mobile" if is_mobile else "Desktop"
-    return (
-        f"# Title: Ghostnetic's Blocklist - {list_type}
-"
-        f"# Description: Consolidated adblock filters ({list_type} version)
-"
-        f"# Last Modified: {timestamp}
-"
-        f"# Total Rules: {rule_count}
-"
-        f"# Duplicates Removed: {stats['duplicates_removed']}
-"
-    )
+    
+    line1 = "# Title: Ghostnetic's Blocklist - " + list_type
+    line2 = "# Description: Consolidated adblock filters (" + list_type + " version)"
+    line3 = "# Last Modified: " + timestamp
+    line4 = "# Total Rules: " + str(rule_count)
+    line5 = "# Duplicates Removed: " + str(stats['duplicates_removed'])
+    
+    return line1 + "
+" + line2 + "
+" + line3 + "
+" + line4 + "
+" + line5
 
 def build_blocklist(urls, filename, is_mobile=False):
-    """Build a blocklist from given URLs."""
-    logging.info(f"Building {filename}...")
+    logging.info("Building " + filename + "...")
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         with requests.Session() as session:
@@ -81,10 +74,8 @@ def build_blocklist(urls, filename, is_mobile=False):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(filter_content)
     
-    logging.info(
-        f"{filename} generated: {stats['total_rules']} rules, "
-        f"{stats['duplicates_removed']} duplicates removed"
-    )
+    msg = filename + " generated: " + str(stats['total_rules']) + " rules, " + str(stats['duplicates_removed']) + " duplicates removed"
+    logging.info(msg)
 
 def main():
     with open('config.json') as f:
