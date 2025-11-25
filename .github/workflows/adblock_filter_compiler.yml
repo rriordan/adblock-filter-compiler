@@ -2,7 +2,7 @@ name: AdBlock Filter Compiler
 
 on:
   schedule:
-    - cron: '0 18 * * *' # Runs every day at 1 PM EST (6 PM UTC)
+    - cron: '0 18 * * *'  # Runs every day at 1 PM EST (6 PM UTC)
   workflow_dispatch:
 
 jobs:
@@ -10,24 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.x
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Run filter generator script
-      run: python adblock_filter_compiler.py
+      - name: Run filter generator script
+        run: python adblock_filter_compiler.py
 
-    - name: Commit and push updated filter list
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add blocklist.txt
-        git commit -m "Update filter list" || echo "No changes to commit"
-        git push
+      - name: Verify generated files
+        run: |
+          echo "Desktop blocklist:"
+          wc -l blocklist_desktop.txt
+          echo "Mobile blocklist:"
+          wc -l blocklist_mobile.txt
+
+      - name: Commit and push updated filter lists
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add blocklist_desktop.txt blocklist_mobile.txt
+          git commit -m "Update blocklists - $(date '+%Y-%m-%d %H:%M:%S UTC')" || echo "No changes to commit"
+          git push
